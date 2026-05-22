@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angelus Health | El Ángel que cuida tu salud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-cyan: #4cc9c0; 
+            --dark-text: #1a1a1a;
+            --light-bg: #f4f7f6;
+            --white: #ffffff;
+            --gray-muted: #7f8c8d;
+            --border-color: #e2e8f0;
+            --status-pending: #f39c12;
+            --status-approved: #2ecc71;
+            --status-rejected: #e74c3c;
+            --whatsapp-green: #25d366;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- Pantalla de Introducción (Splash Screen) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.8s ease;
+        }
+
+        .splash-logo {
+            max-width: 200px;
+            height: auto;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+            animation: entranteLogo 1.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes entranteLogo {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #splash-screen.fade-out {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- Sección de Autenticación (Login/Registro) --- */
+        #auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #edf2f1 0%, #d4eade 100%);
+        }
+
+        .auth-box {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .auth-box img { max-width: 150px; margin-bottom: 20px; mix-blend-mode: multiply; }
+        .auth-box h2 { font-family: 'Playfair Display', serif; margin-bottom: 25px; color: var(--dark-text); }
+        
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--gray-muted); }
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border 0.3s; background: var(--white); }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary-cyan); }
+
+        .auth-btn { width: 100%; background: var(--primary-cyan); color: var(--white); border: none; padding: 14px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.3s, transform 0.2s; font-size: 0.95rem; margin-top: 10px; }
+        .auth-btn:hover { background: #3ba7a0; transform: translateY(-1px); }
+        .auth-switch { margin-top: 20px; font-size: 0.85rem; color: var(--gray-muted); }
+        .auth-switch span { color: var(--primary-cyan); cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+        /* --- Contenido Principal de la App --- */
+        #main-content { display: none; }
+
+        /* --- Header & Navegación --- */
+        header {
+            background: var(--white);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-container { display: flex; align-items: center; }
+        .logo-img { height: 45px; width: auto; object-fit: contain; mix-blend-mode: multiply; }
+
+        nav ul { display: flex; list-style: none; align-items: center; }
+        nav ul li { margin-left: 20px; }
+        nav ul li a { text-decoration: none; color: var(--dark-text); font-weight: 400; font-size: 0.9rem; transition: color 0.3s; }
+        nav ul li a:hover { color: var(--primary-cyan); }
+        
+        .user-badge { font-size: 0.8rem; background: #e8f7f6; padding: 6px 12px; border-radius: 20px; color: var(--primary-cyan); font-weight: 600; display: flex; align-items: center; gap: 8px;}
+        .logout-link { color: #e74c3c !important; cursor: pointer; font-weight: 600; margin-left: 5px; }
+
+        /* --- Hero Section --- */
+        .hero {
+            position: relative;
+            height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            padding: 0 10%;
+            overflow: hidden;
+        }
+
+        .hero-carousel-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .carousel-slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: 0; filter: blur(5px); animation: carruselSeisImagenes 24s infinite ease-in-out;
+        }
+        .carousel-slide:nth-child(1) { background-image: url('carru1.jpg'); animation-delay: 0s; }
+        .carousel-slide:nth-child(2) { background-image: url('carru2.jpg'); animation-delay: 4s; }
+        .carousel-slide:nth-child(3) { background-image: url('carru3.jpg'); animation-delay: 8s; }
+        .carousel-slide:nth-child(4) { background-image: url('carru4.jpg'); animation-delay: 12s; }
+        .carousel-slide:nth-child(5) { background-image: url('carru5.jpg'); animation-delay: 16s; }
+        .carousel-slide:nth-child(6) { background-image: url('carru6.jpg'); animation-delay: 20s; }
+
+        @keyframes carruselSeisImagenes {
+            0% { opacity: 0; filter: blur(5px); transform: scale(1.02); }
+            3% { opacity: 1; filter: blur(0px); transform: scale(1); }
+            16.66% { opacity: 1; filter: blur(0px); transform: scale(1); }
+            19.66% { opacity: 0; filter: blur(5px); transform: scale(1.02); }
+            100% { opacity: 0; }
+        }
+
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(76, 201, 192, 0.88) 0%, rgba(58, 167, 160, 0.92) 100%);
+            z-index: 2;
+        }
+
+        .hero-content { position: relative; z-index: 3; }
+        .hero-content h1 { font-size: 3.5rem; font-family: 'Playfair Display', serif; margin-bottom: 20px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2); }
+        .hero-content p { font-size: 1.2rem; max-width: 700px; margin: 0 auto 30px; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.15); }
+
+        .btn-main {
+            background: var(--white); color: var(--primary-cyan); padding: 15px 40px;
+            text-decoration: none; border-radius: 50px; font-weight: 700;
+            transition: all 0.5s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,255,255,0.2); }
+
+        /* --- Secciones Generales --- */
+        section { padding: 80px 10%; }
+        .section-title { text-align: center; margin-bottom: 40px; }
+        .section-title h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--primary-cyan); }
+
+        /* --- Sección Quiénes Somos --- */
+        .info-split { display: flex; gap: 50px; align-items: center; }
+        .info-text { flex: 1; }
+        .info-text p { margin-bottom: 15px; }
+
+        /* --- Vademécum --- */
+        #vademecum { background: #edf2f1; padding: 80px 5%; }
+        
+        .lineas-nav-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 50px;
+        }
+
+        .linea-tab {
+            background: var(--white); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px;
+            cursor: pointer; text-align: center; font-weight: 600; font-size: 0.85rem;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; height: 70px;
+        }
+        .linea-tab:hover { border-color: var(--primary-cyan); transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .linea-tab.active { background: var(--primary-cyan); color: var(--white); border-color: var(--primary-cyan); box-shadow: 0 6px 18px rgba(76, 201, 192, 0.3); }
+
+        .products-display-area {
+            min-height: 200px; background: var(--white); border-radius: 15px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); display: none; opacity: 0;
+        }
+        .products-display-area.active { display: block; animation: fadeInLento 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
+
+        .product-card {
+            background: var(--light-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px;
+            transition: all 0.4s ease; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .product-card:hover { border-color: var(--primary-cyan); background: var(--white); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .product-card h4 { font-size: 0.95rem; margin-bottom: 5px; color: var(--dark-text); }
+        .product-card p { font-size: 0.85rem; color: var(--gray-muted); margin-bottom: 15px; font-style: italic; }
+
+        .card-actions-container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+        .btn-details {
+            background: none; border: 1px solid var(--primary-cyan); color: var(--primary-cyan); padding: 9px;
+            border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); width: 100%;
+        }
+        .btn-details:hover { background: var(--primary-cyan); color: var(--white); box-shadow: 0 4px 12px rgba(76, 201, 192, 0.25); transform: translateY(-1px); }
+
+        .btn-delete-product {
+            background: var(--status-rejected); color: var(--white); border: none; padding: 9px; border-radius: 6px;
+            font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: background 0.3s; width: 100%;
+        }
+        .btn-delete-product:hover { background: #c0392b; }
+
+        /* --- Panel de Solicitudes y Formularios --- */
+        .panel-section { background: var(--white); border-radius: 15px; padding: 35px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); margin-top: 40px; }
+        .panel-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 14px 18px; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--light-bg); color: var(--dark-text); font-weight: 600; }
+        
+        .badge-status { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; color: var(--white); display: inline-block; }
+        .badge-pending { background: var(--status-pending); }
+        .badge-approved { background: var(--status-approved); }
+        .badge-rejected { background: var(--status-rejected); }
+
+        .action-btn-container { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-action { padding: 6px 12px; border: none; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; color: var(--white); }
+        .btn-approve { background: var(--status-approved); }
+        .btn-reject { background: var(--status-rejected); }
+        .btn-delete { background: #e74c3c; }
+        .btn-clear-history { background: #34495e; color: var(--white); padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.3s; font-size: 0.85rem; }
+        .btn-clear-history:hover { background: #2c3e50; }
+        .btn-action:hover { opacity: 0.85; }
+
+        .admin-form { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+        .btn-submit-form { background: var(--primary-cyan); color: var(--white); font-weight: 700; padding: 12px; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
+        .btn-submit-form:hover { background: #3ba7a0; }
+
+        @keyframes fadeInLento { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Modales Generales --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); backdrop-filter: blur(0px);
+            z-index: 2000; display: flex; justify-content: center; align-items: center; pointer-events: none; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active { background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); pointer-events: auto; }
+
+        .modal-box { 
+            background: var(--white); width: 90%; max-width: 450px; padding: 30px; border-radius: 15px; position: relative;
+            opacity: 0; transform: scale(0.9) translateY(20px); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        .modal-overlay.active .modal-box { opacity: 1; transform: scale(1) translateY(0); }
+        .modal-detail-item { margin-top: 15px; }
+        .modal-detail-item label { color: var(--primary-cyan); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; display: block; }
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.2rem; transition: color 0.3s; }
+        .close-modal:hover { color: var(--primary-cyan); }
+
+        .btn-request-prod { width: 100%; background: var(--primary-cyan); color: var(--white); border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 25px; transition: background 0.3s; }
+        .btn-request-prod:hover { background: #3ba7a0; }
+
+        /* --- Alertas de Diseño Personalizado en el Centro --- */
+        #custom-alert-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+            z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        #custom-alert-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .alert-modal-card {
+            background: var(--white); width: 90%; max-width: 400px; padding: 30px; border-radius: 16px; text-align: center;
+            transform: scale(0.85) translateY(10px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-top: 6px solid var(--primary-cyan);
+        }
+        #custom-alert-overlay.active .alert-modal-card { transform: scale(1) translateY(0); }
+
+        .alert-icon-wrap {
+            width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            margin: 0 auto 15px; font-size: 1.8rem; font-weight: bold;
+        }
+        
+        .alert-type-success { border-top-color: #2ecc71; }
+        .alert-type-success .alert-icon-wrap { background: #e8f8f0; color: #2ecc71; }
+        
+        .alert-type-warning { border-top-color: #f39c12; }
+        .alert-type-warning .alert-icon-wrap { background: #fef5e7; color: #f39c12; }
+
+        .alert-type-danger { border-top-color: #e74c3c; }
+        .alert-type-danger .alert-icon-wrap { background: #fdedec; color: #e74c3c; }
+
+        .alert-modal-card h4 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 10px; color: var(--dark-text); }
+        .alert-modal-card p { font-size: 0.9rem; color: var(--gray-muted); margin-bottom: 25px; padding: 0 10px; }
+
+        .alert-action-btns { display: flex; justify-content: center; gap: 12px; }
+        .alert-btn-confirm { background: var(--primary-cyan); color: var(--white); border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: opacity 0.2s; }
+        .alert-btn-confirm:hover { opacity: 0.9; }
+        .alert-btn-cancel { background: #e2e8f0; color: var(--dark-text); border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: background 0.3s; }
+        .alert-btn-cancel:hover { background: #cbd5e1; }
+
+        /* --- BOTÓN FLOTANTE DE WHATSAPP (SOPORTE TÉCNICO) --- */
+        .whatsapp-btn-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--whatsapp-green);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+        }
+        .whatsapp-btn-float:hover {
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+        .whatsapp-btn-float svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--white);
+        }
+
+        /* --- Footer --- */
+        footer { background: var(--dark-text); color: var(--white); padding: 50px 10% 20px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
+        .footer-bottom { text-align: center; border-top: 1px solid #333; padding-top: 20px; font-size: 0.8rem; margin-top: 20px;}
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img src="angelus.png" alt="Angelus Health Logo" class="splash-logo">
+    </div>
+
+    <a href="https://wa.me/584162409427?text=Saludos%20Angelus%20Health.%20Necesito%20soporte%20t%C3%A9cnico%20con%20la%20plataforma." 
+       target="_blank" 
+       class="whatsapp-btn-float" 
+       title="Soporte Técnico WhatsApp">
+        <svg viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397 0 11.966 0c3.178.001 6.165 1.24 8.413 3.488 2.248 2.248 3.487 5.233 3.487 8.411-.004 6.616-5.34 11.962-11.91 11.962l-5.378-.002zm6.136-4.305l.34.202c1.63.968 3.447 1.48 5.309 1.482l.006-.001c5.526 0 10.022-4.493 10.025-10.022.002-2.678-1.04-5.197-2.934-7.091-1.894-1.894-4.415-2.936-7.097-2.937C6.31 1.328 1.81 5.82 1.808 11.35c-.001 1.93.52 3.81 1.506 5.441l.222.368-1.004 3.666 3.661-.96zM17.65 14.5c-.312-.156-1.844-.91-2.129-1.013-.283-.104-.49-.156-.695.156-.206.312-.796.104-.975 1.144-.18.207-.359.233-.67.078-.313-.156-1.322-.487-2.518-1.555-.93-.83-1.558-1.855-1.74-2.166-.181-.313-.02-.481.136-.636.14-.14.312-.364.468-.546.156-.182.208-.312.312-.52.104-.207.052-.39-.026-.546-.078-.156-.695-1.677-.952-2.299-.25-.601-.504-.519-.695-.529-.18-.009-.387-.01-.595-.01s-.546.078-.832.39c-.286.313-1.092 1.066-1.092 2.6 0 1.534 1.118 3.016 1.273 3.223.156.208 2.2 3.36 5.33 4.716.744.322 1.324.515 1.777.659.748.238 1.429.205 1.968.125.6-.09 1.844-.753 2.103-1.442.259-.688.259-1.277.182-1.402-.078-.125-.286-.208-.6-.364z"/>
+        </svg>
+    </a>
+
+    <div id="custom-alert-overlay">
+        <div class="alert-modal-card" id="alertCard">
+            <div class="alert-icon-wrap" id="alertIcon">✓</div>
+            <h4 id="alertTitle">Notificación</h4>
+            <p id="alertMessage">Mensaje por defecto del sistema.</p>
+            <div class="alert-action-btns" id="alertButtonsArea">
+                <button class="alert-btn-confirm" id="alertBtnAccept">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-container">
+        <div class="auth-box" id="login-form-box">
+            <img src="angelus.png" alt="Logo">
+            <h2>Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="login-email" required placeholder="ejemplo@correo.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="auth-btn">Ingresar</button>
+            </form>
+            <div class="auth-switch">¿No tienes cuenta? <span onclick="switchAuth(true)">Regístrate aquí</span></div>
+        </div>
+
+        <div class="auth-box" id="register-form-box" style="display:none;">
+            <img src="angelus.png" alt="Logo">
+            <h2>Crear Cuenta</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Nombre Completo / Razón Social</label>
+                    <input type="text" id="reg-name" required placeholder="Juan Pérez u Hospimed C.A.">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="reg-email" required placeholder="ejemplo@correo.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="reg-password" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="auth-btn">Registrarme</button>
+            </form>
+            <div class="auth-switch">¿Ya tienes cuenta? <span onclick="switchAuth(false)">Inicia Sesión</span></div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <header>
+            <div class="logo-container"><img src="angelus.png" alt="Logo" class="logo-img"></div>
+            <nav>
+                <ul id="nav-links">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#portafolio">Portafolio</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div id="client-view-container">
+            <section id="inicio" class="hero">
+                <div class="hero-carousel-container">
+                    <div class="carousel-slide"></div><div class="carousel-slide"></div><div class="carousel-slide"></div>
+                    <div class="carousel-slide"></div><div class="carousel-slide"></div><div class="carousel-slide"></div>
+                </div>
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1>El Ángel que cuida tu salud</h1>
+                    <p>Comprometidos con el bienestar de todos los venezolanos a través de innovación, ética y servicio de alta calidad.</p>
+                    <a href="#portafolio" class="btn-main">Ver Productos</a>
+                </div>
+            </section>
+
+            <section id="nosotros">
+                <div class="section-title">
+                    <h2>Quiénes Somos</h2>
+                </div>
+                <div class="info-split">
+                    <div class="info-text">
+                        <p>En <strong>Angelus Health</strong>, nuestros productos han sido diseñados bajo los más altos estándares con efectividad comprobada. Somos innovación, ética y servicio, orientados a brindar soluciones farmacéuticas efectivas y al alcance de aquellos que nos eligen día a día.</p>
+                        <br>
+                        <p><strong>Misión:</strong> Satisfacer las necesidades de salud con productos accesibles y de rigor científico.</p>
+                        <p><strong>Visión:</strong> Ser el aliado confiable líder en el mercado farmacéutico venezolano para el 2028.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section id="vademecum">
+            <div class="section-title">
+                <h2>Portafolio por Línea Terapéutica</h2>
+                <p id="vademecum-subtitle" style="text-align: center; color: var(--gray-muted);">Selecciona una categoría para conocer nuestro amplio portafolio de productos.</p>
+            </div>
+            <div class="lineas-nav-grid" id="lineasGrid"></div>
+            <div class="products-display-area" id="productsArea">
+                <h3 id="selectedLineTitle" style="margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Línea</h3>
+                <div class="products-grid" id="productsGrid"></div>
+            </div>
+
+            <div class="panel-section" id="my-requests-section" style="display:none;">
+                <h3>Mis Solicitudes de Productos</h3>
+                <div class="table-responsive">
+                    <table id="client-requests-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Principio Activo</th>
+                                <th>Presentación</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <div id="admin-view-container" style="display:none;">
+            <section id="admin-panel" style="padding-top: 0;">
+                <div class="section-title">
+                    <h2>Panel de Control (Administrador)</h2>
+                    <p>Monitoreo global de registros, control de usuarios y gestión dinámica de productos del vademécum.</p>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Agregar Nuevo Producto al Vademécum</h3>
+                    <form id="admin-add-product-form" class="admin-form">
+                        <div class="panel-grid-two" style="margin-top:0;">
+                            <div class="form-group">
+                                <label>Línea Terapéutica</label>
+                                <select id="new-prod-linea" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre Comercial / Comercialización</label>
+                                <input type="text" id="new-prod-name" placeholder="Ej: Amoxicilina" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Principio Activo / Composición</label>
+                                <input type="text" id="new-prod-principio" placeholder="Ej: Amoxicilina Trihidrato" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Presentación Comercial</label>
+                                <input type="text" id="new-prod-pres" placeholder="Ej: 500 mg - 10 Cápsulas" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit-form">Guardar Producto en el Catálogo</button>
+                    </form>
+                </div>
+
+                <div class="panel-section" style="margin-top: 40px;">
+                    <div class="panel-header-actions">
+                        <h3>Solicitudes de Productos Recibidas</h3>
+                        <button class="btn-clear-history" onclick="clearAllRequestsHistory()">Borrar Todo el Historial</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="admin-requests-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Producto</th>
+                                    <th>Composición</th>
+                                    <th>Presentación</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel-section" style="margin-top: 40px;">
+                    <h3>Usuarios Registrados en el Sistema</h3>
+                    <div class="table-responsive">
+                        <table id="admin-users-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre / Razón Social</th>
+                                    <th>Correo Electrónico</th>
+                                    <th>Rol</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer id="contacto">
+            <div class="footer-grid">
+                <div>
+                    <h3>Angelus Health</h3>
+                    <p>Caracas, Venezuela</p>
+                    <p>RIF: J-41186442-0</p>
+                </div>
+                <div>
+                    <h4>Enlaces</h4>
+                    <p>Bolsa de Trabajo</p>
+                    <p>Preguntas Frecuentes</p>
+                </div>
+                <div>
+                    <h4>Contacto</h4>
+                    <p>info@angelushealth.org</p>
+                    <p>Atención al Cliente: 0800-ANGELUS</p>
+                </div>
+            </div>
+            <div class="footer-bottom">&copy; 2026 Angelus Health. Todos los derechos reservados. Diseñado por Ángel Díaz.</div>
+        </footer>
+    </div>
+
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-box">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h3 id="mTitle">Producto</h3>
+            <div class="modal-detail-item"><label>Principio Activo / Composición</label><p id="mPrincipio">-</p></div>
+            <div class="modal-detail-item"><label>Presentación Comercial</label><p id="mPres">-</p></div>
+            <button class="btn-request-prod" id="btnRequestProduct">Solicitar este Producto</button>
+        </div>
+    </div>
+
+    <script>
+        const initialDB = {
+            "Anti-infecciosa": [
+                { id: "anti_1", n: "Azitromicina", p: "Azitromicina", d: "500 mg - 3 Tab. Rec." },
+                { id: "anti_2", n: "Amoxicilina / Ácido Clavulánico", p: "Amoxicilina / Ácido Clavulánico", d: "875 mg / 125 mg - 14 Tab. Rec." },
+                { id: "anti_3", n: "Cefadroxilo", p: "Cefadroxilo", d: "500 mg - 10 Cápsulas" },
+                { id: "anti_4", n: "Cefixima (5 Tab)", p: "Cefixima", d: "400 mg - 5 Tab. Rec." },
+                { id: "anti_5", n: "Cefixima (10 Tab)", p: "Cefixima", d: "400 mg - 10 Tab. Rec." }
+            ],
+            "Anti-inflamatoria": [
+                { id: "inf_1", n: "Diacereína", p: "Diacereína", d: "50 mg - 30 Cápsulas" },
+                { id: "inf_2", n: "Ezetix™ (60 mg)", p: "Etoricoxib", d: "60 mg - 10 Tab. Rec." },
+                { id: "inf_3", n: "Ezetix™ (90 mg)", p: "Etoricoxib", d: "90 mg - 10 Tab. Rec." }
+            ],
+            "Cardio": [
+                { id: "card_1", n: "Amlodipino / Valsartán", p: "Amlodipino / Valsartán", d: "5 mg / 160 mg - 30 Tab. Rec." },
+                { id: "card_2", n: "Amlodipino", p: "Amlodipino", d: "5 mg - 30 Tab." },
+                { id: "card_3", n: "Bisoprolol Fumarato (2.5 mg)", p: "Bisoprolol Fumarato", d: "2.5 mg - 30 Tab. Rec." }
+            ],
+            "Dermatológica": [
+                { id: "derm_1", n: "Betametasona", p: "Betametasona", d: "0,05% - 20 g Crema" },
+                { id: "derm_2", n: "Corzelán®", p: "Clotrimazol 1% / Neomicina 0,5% / Dexametasona 0,04%", d: "20 g Crema" }
+            ],
+            "Gástrica": [
+                { id: "gast_1", n: "Pimadol®", p: "N-Butilbromuro de Hioscina", d: "10 mg - 30 Tab. Dispersables" },
+                { id: "gast_3", n: "Lopunol®", p: "Pantoprazol de Sodio", d: "20 mg - 14 Tab. LR" }
+            ],
+            "Ginecológica": [
+                { id: "gine_1", n: "Benpazyl™", p: "Alendronato de Sodio", d: "70 mg - 4 Tab. Rec." },
+                { id: "gine_2", n: "Progesterona Micronizada", p: "Progesterona Micronizada", d: "200 mg - 30 Cápsulas Blandas" }
+            ],
+            "Metabólica": [
+                { id: "meta_2", n: "Atorvastatina (20 mg)", p: "Atorvastatina", d: "20 mg - 30 Tab. Rec." },
+                { id: "meta_3", n: "Atorvastatina (40 mg)", p: "Atorvastatina", d: "40 mg - 30 Tab. Rec." },
+                { id: "meta_6", n: "Glinamed® (5 mg)", p: "Dapagliflozina", d: "5 mg - 30 Tab. Rec." }
+            ],
+            "Oftalmológica": [
+                { id: "ofta_1", n: "Diclofenac Sódico", p: "Diclofenac Sódico", d: "0.1% - 5 mL Gotas Oftálmicas" }
+            ],
+            "Neurológica": [
+                { id: "neuro_3", n: "Clousán™ (500 mg)", p: "Levetiracetam", d: "500 mg - 30 Tab. Rec." },
+                { id: "neuro_8", n: "Pregabalina", p: "Pregabalina", d: "75 mg - 30 Cápsulas" }
+            ],
+            "Psiquiátrica": [
+                { id: "psic_5", n: "Escitalopram (5 mg)", p: "Escitalopram", d: "5 mg - 30 Tab. Rec." },
+                { id: "psic_7", n: "Fluoxetina", p: "Fluoxetina", d: "20 mg - 30 Cápsulas" }
+            ],
+            "Urológica": [
+                { id: "urol_1", n: "Finasterida", p: "Finasterida", d: "5 mg - 30 Tab. Rec." },
+                { id: "urol_3", n: "Urosina®", p: "Tamsulosina", d: "0,4 mg - 30 Tab. Rec. LP" }
+            ],
+            "Vascular": [
+                { id: "vasc_3", n: "Diosmina / Hesperidina", p: "Diosmina / Hesperidina", d: "450 mg / 50 mg - 30 Tab. Rec." }
+            ],
+            "Pediátrica": [
+                { id: "ped_1", n: "Amoxicilina / Ácido Clavulánico (250mg)", p: "Amoxicilina / Ácido Clavulánico", d: "250 mg - 62,5 mg / 5mL - 60mL Polvo" },
+                { id: "ped_3", n: "Azitromicina Pediátrica", p: "Azitromicina", d: "200 mg / 5mL - 15mL Suspensión" }
+            ],
+            "Respiratoria": [
+                { id: "resp_1", n: "Clasol™", p: "Dextrometorfano Bromhidrato", d: "15 mg / 5mL - 120 mL Solución Oral" }
+            ],
+            "Biológica": [
+                { id: "biol_1", n: "MenFive®", p: "Vacuna Conjugada Antimeningocócica", d: "1 Vial Monodosis" }
+            ]
+        };
+
+        if (!localStorage.getItem('productsDB')) { localStorage.setItem('productsDB', JSON.stringify(initialDB)); }
+        if (!localStorage.getItem('usersDB')) {
+            localStorage.setItem('usersDB', JSON.stringify([{ name: "Administrador Master", email: "admin@angelus.com", password: "admin123", role: "admin" }]));
+        }
+        if (!localStorage.getItem('requestsDB')) { localStorage.setItem('requestsDB', JSON.stringify([])); }
+
+        let currentUser = JSON.parse(sessionStorage.getItem('activeUser')) || null;
+        let selectedProductForRequest = null;
+        let activeLineaTab = null;
+
+        const grid = document.getElementById('lineasGrid');
+        const area = document.getElementById('productsArea');
+        const pGrid = document.getElementById('productsGrid');
+
+        // --- SISTEMA DE DESPLAZAMIENTO SUAVE ORGÁNICO (SMOOTH SCROLL) ---
+        function smoothScrollTo(targetElement, duration) {
+            const headerOffset = 80; // Altura aproximada del header sticky
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            const startPosition = window.pageYOffset;
+            const distance = offsetPosition - startPosition;
+            let startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const run = easeInOutCubic(timeElapsed, startPosition, distance, duration);
+                window.scrollTo(0, run);
+                if (timeElapsed < duration) requestAnimationFrame(animation);
+            }
+
+            function easeInOutCubic(t, b, c, d) {
+                t /= d / 2;
+                if (t < 1) return c / 2 * t * t * t + b;
+                t -= 2;
+                return c / 2 * (t * t * t + 2) + b;
+            }
+
+            requestAnimationFrame(animation);
+        }
+
+        // Interceptar clics de anclas dinámicas y estáticas del menú
+        document.addEventListener('click', function(e) {
+            const anchor = e.target.closest('a[href^="#"]');
+            if (anchor) {
+                e.preventDefault();
+                const targetId = anchor.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    smoothScrollTo(targetElement, 800); // 0.8 segundos de movimiento orgánico
+                }
+            }
+        });
+
+        // --- MOTOR PROPIO DE ALERTAS VISUALES PERSONALIZADAS ---
+        function triggerCustomAlert(title, message, type = 'success', callback = null) {
+            const overlay = document.getElementById('custom-alert-overlay');
+            const card = document.getElementById('alertCard');
+            const icon = document.getElementById('alertIcon');
+            const tEl = document.getElementById('alertTitle');
+            const mEl = document.getElementById('alertMessage');
+            const buttonsArea = document.getElementById('alertButtonsArea');
+
+            card.className = "alert-modal-card alert-type-" + type;
+            
+            if(type === 'success') icon.innerText = "✓";
+            if(type === 'warning') icon.innerText = "⚠";
+            if(type === 'danger') icon.innerText = "✕";
+
+            tEl.innerText = title;
+            mEl.innerText = message;
+
+            buttonsArea.innerHTML = '';
+            const btnAccept = document.createElement('button');
+            btnAccept.className = 'alert-btn-confirm';
+            btnAccept.innerText = 'Aceptar';
+            btnAccept.onclick = () => {
+                overlay.classList.remove('active');
+                if(callback) callback();
+            };
+            buttonsArea.appendChild(btnAccept);
+
+            overlay.classList.add('active');
+        }
+
+        // --- MOTOR PROPIO DE MODALES DE CONFIRMACIÓN ---
+        function triggerCustomConfirm(title, message, onConfirm) {
+            const overlay = document.getElementById('custom-alert-overlay');
+            const card = document.getElementById('alertCard');
+            const icon = document.getElementById('alertIcon');
+            const tEl = document.getElementById('alertTitle');
+            const mEl = document.getElementById('alertMessage');
+            const buttonsArea = document.getElementById('alertButtonsArea');
+
+            card.className = "alert-modal-card alert-type-danger";
+            icon.innerText = "🗑";
+            tEl.innerText = title;
+            mEl.innerText = message;
+
+            buttonsArea.innerHTML = '';
+            
+            const btnCancel = document.createElement('button');
+            btnCancel.className = 'alert-btn-cancel';
+            btnCancel.innerText = 'Cancelar';
+            btnCancel.onclick = () => { overlay.classList.remove('active'); };
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.className = 'alert-btn-confirm';
+            btnConfirm.style.background = 'var(--status-rejected)';
+            btnConfirm.innerText = 'Confirmar';
+            btnConfirm.onclick = () => {
+                overlay.classList.remove('active');
+                onConfirm();
+            };
+
+            buttonsArea.appendChild(btnCancel);
+            buttonsArea.appendChild(btnConfirm);
+            overlay.classList.add('active');
+        }
+
+        // --- Renderizar Pestañas del Catálogo ---
+        function renderLineasTabs() {
+            grid.innerHTML = "";
+            const currentDB = JSON.parse(localStorage.getItem('productsDB'));
+            
+            Object.keys(currentDB).forEach(linea => {
+                const div = document.createElement('div');
+                div.className = 'linea-tab';
+                if(activeLineaTab === linea) div.classList.add('active');
+                div.innerText = linea;
+                div.onclick = () => {
+                    activeLineaTab = linea;
+                    document.querySelectorAll('.linea-tab').forEach(t => t.classList.remove('active'));
+                    div.classList.add('active');
+                    area.classList.remove('active');
+                    void area.offsetWidth; 
+                    showProducts(linea);
+                };
+                grid.appendChild(div);
+            });
+        }
+
+        function showProducts(linea) {
+            area.classList.add('active');
+            document.getElementById('selectedLineTitle').innerText = "Línea " + linea;
+            pGrid.innerHTML = "";
+            
+            const currentDB = JSON.parse(localStorage.getItem('productsDB'));
+            const productosFiltrados = currentDB[linea] || [];
+
+            if(productosFiltrados.length === 0) {
+                pGrid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:var(--gray-muted); padding: 20px;">No hay productos en esta línea.</p>`;
+                return;
+            }
+
+            productosFiltrados.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                let adminActionHtml = (currentUser && currentUser.role === 'admin') ? 
+                    `<button class="btn-delete-product" onclick="deleteProductFromCatalog('${linea}', '${prod.id}')">Eliminar Producto</button>` : "";
+
+                card.innerHTML = `
+                    <div>
+                        <h4>${prod.n}</h4>
+                        <p>${prod.p}</p>
+                    </div>
+                    <div class="card-actions-container">
+                        <button class="btn-details" onclick="openM('${prod.n.replace(/'/g, "\\'")}','${prod.p.replace(/'/g, "\\'")}','${prod.d.replace(/'/g, "\\")}')">Detalles</button>
+                        ${adminActionHtml}
+                    </div>
+                `;
+                pGrid.appendChild(card);
+            });
+            setTimeout(() => { smoothScrollTo(area, 1200); }, 150);
+        }
+
+        // --- Agregar Producto (Exclusivo Admin) ---
+        document.getElementById('admin-add-product-form').onsubmit = (e) => {
+            e.preventDefault();
+            const linea = document.getElementById('new-prod-linea').value;
+            const name = document.getElementById('new-prod-name').value.trim();
+            const principio = document.getElementById('new-prod-principio').value.trim();
+            const pres = document.getElementById('new-prod-pres').value.trim();
+
+            let currentDB = JSON.parse(localStorage.getItem('productsDB'));
+            if (!currentDB[linea]) currentDB[linea] = [];
+
+            const newProduct = {
+                id: "prod_" + Date.now(),
+                n: name,
+                p: principio,
+                d: pres
+            };
+
+            currentDB[linea].push(newProduct);
+            localStorage.setItem('productsDB', JSON.stringify(currentDB));
+            
+            triggerCustomAlert("Éxito", `Producto "${name}" agregado exitosamente a la línea ${linea}.`, "success");
+            document.getElementById('admin-add-product-form').reset();
+            
+            renderLineasTabs();
+            if (activeLineaTab === linea) {
+                showProducts(linea);
+            }
+        };
+
+        // --- Eliminar Producto del Catálogo (Exclusivo Admin) ---
+        window.deleteProductFromCatalog = (linea, prodId) => {
+            triggerCustomConfirm(
+                "Eliminar del Catálogo", 
+                "¿Estás seguro de que deseas eliminar permanentemente este producto del portafolio comercial?", 
+                () => {
+                    let currentDB = JSON.parse(localStorage.getItem('productsDB'));
+                    if(currentDB[linea]) {
+                        currentDB[linea] = currentDB[linea].filter(p => p.id !== prodId);
+                        localStorage.setItem('productsDB', JSON.stringify(currentDB));
+                        showProducts(linea);
+                        triggerCustomAlert("Removido", "Producto eliminado con éxito del vademécum.", "warning");
+                    }
+                }
+            );
+        };
+
+        function populateAdminSelectLines() {
+            const select = document.getElementById('new-prod-linea');
+            select.innerHTML = "";
+            const currentDB = JSON.parse(localStorage.getItem('productsDB'));
+            Object.keys(currentDB).forEach(linea => {
+                const opt = document.createElement('option');
+                opt.value = linea; opt.innerText = linea;
+                select.appendChild(opt);
+            });
+        }
+
+        function openM(n, p, d) {
+            document.getElementById('mTitle').innerText = n;
+            document.getElementById('mPrincipio').innerText = p;
+            document.getElementById('mPres').innerText = d;
+            selectedProductForRequest = { n, p, d };
+            document.getElementById('btnRequestProduct').style.display = (currentUser && currentUser.role === 'admin') ? 'none' : 'block';
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        document.getElementById('closeModal').onclick = () => document.getElementById('productModal').classList.remove('active');
+        document.getElementById('productModal').onclick = (e) => { if(e.target === document.getElementById('productModal')) document.getElementById('productModal').classList.remove('active'); };
+
+        document.getElementById('btnRequestProduct').onclick = () => {
+            if(!selectedProductForRequest || !currentUser) return;
+            let requests = JSON.parse(localStorage.getItem('requestsDB'));
+            requests.push({
+                id: Date.now(), userEmail: currentUser.email, userName: currentUser.name,
+                productName: selectedProductForRequest.n, productPrincipio: selectedProductForRequest.p, productPres: selectedProductForRequest.d, status: 'Pendiente'
+            });
+            localStorage.setItem('requestsDB', JSON.stringify(requests));
+            
+            document.getElementById('productModal').classList.remove('active');
+            triggerCustomAlert("Solicitud Recibida", `Requerimiento de comercialización para "${selectedProductForRequest.n}" registrado con éxito.`, "success");
+            renderClientRequests();
+        };
+
+        function switchAuth(toRegister) {
+            document.getElementById('login-form-box').style.display = toRegister ? 'none' : 'block';
+            document.getElementById('register-form-box').style.display = toRegister ? 'block' : 'none';
+        }
+
+        document.getElementById('login-form').onsubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value;
+            const user = JSON.parse(localStorage.getItem('usersDB')).find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === pass);
+            if(user) { 
+                sessionStorage.setItem('activeUser', JSON.stringify(user)); 
+                currentUser = user; 
+                initAppDashboard(); 
+            } else { 
+                triggerCustomAlert("Error de Acceso", "Las credenciales ingresadas no coinciden con nuestros registros.", "danger"); 
+            }
+        };
+
+        document.getElementById('register-form').onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-password').value;
+            let users = JSON.parse(localStorage.getItem('usersDB'));
+            if(users.some(u => u.email.toLowerCase() === email.toLowerCase())) { 
+                triggerCustomAlert("Registro Fallido", "El correo electrónico ya se encuentra registrado en la red comercial.", "warning"); 
+                return; 
+            }
+            users.push({ name, email, password: pass, role: 'client' });
+            localStorage.setItem('usersDB', JSON.stringify(users));
+            triggerCustomAlert("Cuenta Creada", "¡Registro exitoso! Ya puedes iniciar sesión con tu cuenta.", "success", () => {
+                switchAuth(false);
+            });
+        };
+
+        function logout() { sessionStorage.removeItem('activeUser'); currentUser = null; location.reload(); }
+
+        function initAppDashboard() {
+            if(!currentUser) return;
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+
+            const navLinks = document.getElementById('nav-links');
+            document.querySelectorAll('.dynamic-nav').forEach(el => el.remove());
+
+            if(currentUser.role === 'admin') {
+                document.getElementById('client-view-container').style.display = 'none';
+                document.getElementById('admin-view-container').style.display = 'block';
+                document.getElementById('my-requests-section').style.display = 'none';
+                document.getElementById('vademecum-subtitle').innerText = "Panel de control administrativo global.";
+                
+                const liPanel = document.createElement('li'); liPanel.className = 'dynamic-nav'; liPanel.innerHTML = `<a href="#admin-panel">Panel Admin</a>`;
+                navLinks.insertBefore(liPanel, navLinks.firstChild);
+                
+                populateAdminSelectLines();
+                renderAdminData();
+            } else {
+                document.getElementById('client-view-container').style.display = 'block';
+                document.getElementById('admin-view-container').style.display = 'none';
+                document.getElementById('my-requests-section').style.display = 'block';
+                
+                const liReq = document.createElement('li'); liReq.className = 'dynamic-nav'; liReq.innerHTML = `<a href="#my-requests-section">Mis Pedidos</a>`;
+                navLinks.appendChild(liReq);
+                renderClientRequests();
+            }
+
+            const liUser = document.createElement('li'); liUser.className = 'dynamic-nav';
+            liUser.innerHTML = `<div class="user-badge"><span>👤 ${currentUser.name} (${currentUser.role === 'admin' ? 'Admin' : 'Cliente'})</span><span class="logout-link" onclick="logout()">[Salir]</span></div>`;
+            navLinks.appendChild(liUser);
+
+            renderLineasTabs();
+        }
+
+        function renderClientRequests() {
+            const myRequests = (JSON.parse(localStorage.getItem('requestsDB')) || []).filter(r => r.userEmail === currentUser.email);
+            const tbody = document.querySelector('#client-requests-table tbody'); tbody.innerHTML = '';
+            if(myRequests.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--gray-muted);">No hay solicitudes.</td></tr>`; return; }
+            myRequests.reverse().forEach(r => {
+                let sc = r.status === 'Aprobado' ? 'badge-approved' : (r.status === 'Negado' ? 'badge-rejected' : 'badge-pending');
+                tbody.innerHTML += `<tr><td><strong>${r.productName}</strong></td><td>${r.productPrincipio}</td><td>${r.productPres}</td><td><span class="badge-status ${sc}">${r.status}</span></td></tr>`;
+            });
+        }
+
+        function renderAdminData() {
+            const requests = JSON.parse(localStorage.getItem('requestsDB')) || [];
+            const reqTbody = document.querySelector('#admin-requests-table tbody'); reqTbody.innerHTML = '';
+            if(requests.length === 0) { reqTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--gray-muted);">No hay solicitudes registradas en el historial.</td></tr>`; } 
+            else {
+                [...requests].reverse().forEach(r => {
+                    let sc = r.status === 'Aprobado' ? 'badge-approved' : (r.status === 'Negado' ? 'badge-rejected' : 'badge-pending');
+                    
+                    let statusAction = r.status === 'Pendiente' ? 
+                        `<button class="btn-action btn-approve" onclick="updateStatusRequest(${r.id}, 'Aprobado')">Aprobar</button>
+                         <button class="btn-action btn-reject" onclick="updateStatusRequest(${r.id}, 'Negado')">Negar</button>` : 
+                        `<span>Procesada</span>`;
+                    
+                    let actionColumnHtml = `
+                        <div class="action-btn-container">
+                            ${statusAction}
+                            <button class="btn-action btn-delete" onclick="deleteSingleRequest(${r.id})">Borrar</button>
+                        </div>
+                    `;
+
+                    reqTbody.innerHTML += `
+                        <tr>
+                            <td><strong>${r.userName}</strong><br><small>${r.userEmail}</small></td>
+                            <td>${r.productName}</td>
+                            <td>${r.productPrincipio}</td>
+                            <td>${r.productPres}</td>
+                            <td><span class="badge-status ${sc}">${r.status}</span></td>
+                            <td>${actionColumnHtml}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const users = JSON.parse(localStorage.getItem('usersDB')) || [];
+            const usersTbody = document.querySelector('#admin-users-table tbody'); usersTbody.innerHTML = '';
+            users.forEach(u => {
+                let btn = u.role !== 'admin' ? `<button class="btn-action btn-delete" onclick="deleteUser('${u.email}')">Eliminar</button>` : `<span>Protegido</span>`;
+                usersTbody.innerHTML += `<tr><td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.role === 'admin' ? 'Admin' : 'Cliente'}</td><td>${btn}</td></tr>`;
+            });
+        }
+
+        window.updateStatusRequest = (id, ns) => {
+            let req = JSON.parse(localStorage.getItem('requestsDB')); const idx = req.findIndex(r => r.id === id);
+            if(idx !== -1) { req[idx].status = ns; localStorage.setItem('requestsDB', JSON.stringify(req)); renderAdminData(); }
+        };
+
+        window.deleteSingleRequest = (id) => {
+            triggerCustomConfirm(
+                "Borrar Solicitud", 
+                "¿Estás seguro de que deseas eliminar permanentemente esta solicitud del registro?", 
+                () => {
+                    let req = JSON.parse(localStorage.getItem('requestsDB')) || [];
+                    req = req.filter(r => r.id !== id);
+                    localStorage.setItem('requestsDB', JSON.stringify(req));
+                    renderAdminData();
+                    triggerCustomAlert("Eliminado", "La solicitud fue removida del historial de manera manual.", "success");
+                }
+            );
+        };
+
+        window.clearAllRequestsHistory = () => {
+            triggerCustomConfirm(
+                "¡Advertencia Crítica!", 
+                "Estás por vaciar por completo el historial de solicitudes de la base de datos local. Esta acción es definitiva.", 
+                () => {
+                    localStorage.setItem('requestsDB', JSON.stringify([]));
+                    renderAdminData();
+                    triggerCustomAlert("Historial Vaciado", "Todo el historial de solicitudes ha sido purgado del sistema.", "danger");
+                }
+            );
+        };
+
+        window.deleteUser = (email) => {
+            triggerCustomConfirm(
+                "Eliminar Usuario", 
+                `¿Deseas revocar el acceso y borrar de forma permanente al usuario ${email}?`, 
+                () => {
+                    localStorage.setItem('usersDB', JSON.stringify(JSON.parse(localStorage.getItem('usersDB')).filter(u => u.email.toLowerCase() !== email.toLowerCase())));
+                    localStorage.setItem('requestsDB', JSON.stringify(JSON.parse(localStorage.getItem('requestsDB')).filter(r => r.userEmail.toLowerCase() !== email.toLowerCase())));
+                    renderAdminData();
+                    triggerCustomAlert("Usuario Removido", "La cuenta asociada y sus pedidos han sido eliminados.", "warning");
+                }
+            );
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderLineasTabs();
+            setTimeout(() => { document.getElementById('splash-screen').classList.add('fade-out'); if(currentUser) initAppDashboard(); }, 2200);
+        });
+    </script>
+</body>
+</html>
